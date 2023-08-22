@@ -58,16 +58,16 @@ class Scene {
 		}
 		for(let i = 0; i < this.width; i++) {
 			for(let j = 0; j < this.height; j++) {
-				if(i != 0) {
+				if(i !== 0) {
 					this.map[i][j].neighbours.push(this.map[i - 1][j]);
 				}
-				if(j != 0) {
+				if(j !== 0) {
 					this.map[i][j].neighbours.push(this.map[i][j - 1]);
 				}
-				if(i != this.width - 1) {
+				if(i !== this.width - 1) {
 					this.map[i][j].neighbours.push(this.map[i + 1][j]);
 				}
-				if(j != this.height - 1) {
+				if(j !== this.height - 1) {
 					this.map[i][j].neighbours.push(this.map[i][j + 1]);
 				}
 			}
@@ -103,6 +103,24 @@ class Scene {
 		}
 
 	}
+
+	addWalker(x = 0, y = 0) {
+		this.walkers.push(new Walker(this.map[x][y]));
+		this.map[x][y].visited = true;
+	}
+}
+
+
+function unVisited(node) {
+	return !node.visited;
+}
+
+function printNodes(nodes) {
+	let out = "";
+	for(let n of nodes) {
+		out += n.id + " ";
+	}
+	return out;
 }
 
 class Walker {
@@ -130,21 +148,23 @@ class Walker {
 
 	walk() {
 		let neighbours = this.pos.neighbours;
-		let unvisitedNeighbours = [];
+		let unvisitedNeighbours = neighbours.filter(unVisited);
 		let nextNode = null;
-		console.log(this.pos.id)
-		// search neighbours
-		for(let n of neighbours) {
-			if(!n.visited) {
-				unvisitedNeighbours.push(n);
-			}
-		}
 
+		console.log("pos:", this.pos.id)
+		// console.log("neighbours:", neighbours)
+		// console.log("unvisitedNeighbours:", unvisitedNeighbours)
+		
 		// retrace
-		if(unvisitedNeighbours.length == 0) {
+		if(unvisitedNeighbours.length === 0) {
 			do {
+
+				if(this.stack.length <= 0) {
+					break;
+				}
+
 				nextNode = this.stack.pop();
-			} while(!nextNode.visited);
+			} while(nextNode.visited);
 		} else {
 			let rand = randInt(0, unvisitedNeighbours.length - 1);
 			nextNode = unvisitedNeighbours[rand];
@@ -152,7 +172,7 @@ class Walker {
 		}
 
 		// if nomore nodes
-		if(nextNode == null) {
+		if(nextNode === null) {
 			return false;
 		}
 
@@ -161,7 +181,12 @@ class Walker {
 			this.stack.push(n);
 		}
 
+		// console.log("nextNode:", nextNode)
+		// console.log("stack:", printNodes(this.stack))
+
 		this.pos = nextNode;
+		return true;
+
 
 	}
 }
@@ -173,8 +198,8 @@ console.log(theScene.map);
 
 theScene.drawMap(canvas);
 
-let walker = new Walker(theScene.map[0][0]);
+theScene.addWalker();
 
-for(let i = 0; i < 10; i++) {
-	walker.walk();
+for(let i = 0; i < 25; i++) {
+	theScene.walkers[0].walk();
 }
