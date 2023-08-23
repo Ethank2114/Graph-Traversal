@@ -17,7 +17,7 @@ function getId() {
 class Node {
 	constructor() {
 		this.id = getId();
-		this.data = null;
+		this.color = "rgb(100, 150, 200)";
 		this.neighbours = [];
 		this.visited = false;
 	}
@@ -38,13 +38,14 @@ class Stack {
 }
 
 class Scene {
-	constructor() {
+	constructor(canvas) {
 		this.width = 5;
 		this.height = 5;
-		this.map = null;
+		this.map;
 		this.backgroundColor = "rgb(30, 30, 25)";
 		this.populateMap();
 		this.walkers = [];
+		this.canvas = canvas
 	}
 
 	populateMap() {
@@ -74,10 +75,10 @@ class Scene {
 		}
 	}
 
-	drawMap(canvas) {	
-		let width = canvas.width;
-		let height = canvas.height;
-		let context = canvas.getContext("2d");
+	drawMap() {	
+		let width = this.canvas.width;
+		let height = this.canvas.height;
+		let context = this.canvas.getContext("2d");
 
 		let tileWidth = width / this.width;
 		let tileHeight = height / this.height;
@@ -93,20 +94,34 @@ class Scene {
 
 		for(let i = 0; i < this.width; i++) {
 			for(let j = 0; j < this.height; j++) {
-				drawRect({	context: context, 
-							x: i * tileWidth, 
-							y: j * tileHeight, 
-							width: tileWidth, 
-							height: tileHeight})/*, 
-							color: this.backgroundColor})*/
+				drawRect({context: context, x: i * tileWidth, y: j * tileHeight, 
+					width: tileWidth, height: tileHeight, color: this.map[i][j].color});
+				
+					
+				
 			}
 		}
 
 	}
 
 	addWalker(x = 0, y = 0) {
-		this.walkers.push(new Walker(this.map[x][y]));
+
+		let newWalker = new Walker(this.map[x][y])
+
+		this.walkers.push(newWalker);
 		this.map[x][y].visited = true;
+		this.map[x][y].color = newWalker.color;
+
+		this.drawMap()
+	}
+
+	iterate() {
+		for(let w of this.walkers) {
+			w.walk();
+		}
+
+		this.drawMap()
+
 	}
 }
 
@@ -124,9 +139,10 @@ function printNodes(nodes) {
 }
 
 class Walker {
-	constructor(pos) {
+	constructor(pos, color = "rgb(0, 150, 150)") {
 		this.pos = pos;
 		this.stack = [];
+		this.color = color;
 	}
 
 	/*
@@ -177,6 +193,7 @@ class Walker {
 		}
 
 		nextNode.visited = true;
+		nextNode.color = this.color;
 		for(let n of unvisitedNeighbours) {
 			this.stack.push(n);
 		}
@@ -193,13 +210,13 @@ class Walker {
 
 let canvas = document.getElementById("canvas");
 
-let theScene = new Scene();
+let theScene = new Scene(canvas);
 console.log(theScene.map);
 
-theScene.drawMap(canvas);
+theScene.drawMap();
 
 theScene.addWalker();
 
-for(let i = 0; i < 25; i++) {
-	theScene.walkers[0].walk();
-}
+let ptr = setInterval(function() {
+	theScene.iterate();
+}, 1000);
