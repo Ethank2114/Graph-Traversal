@@ -24,10 +24,26 @@ function mixColor(oldString, strength) {
 	return "rgb(" + rgb[0].toString() + ", "+ rgb[1].toString() + ", " + rgb[2].toString() + ")";  
 }
 
+var randColor = function() {
+	let r = randInt(0, 255);
+	let g = randInt(0, 255);
+	let b = randInt(0, 255);
+	return "rgb(" + r.toString() + ", "+ g.toString() + ", " + b.toString() + ")"; 
+}
+
 let idCounter = 0;
 function getId() {
 	return ++idCounter;
 }
+
+let gridWidth = 1200;
+let gridheight = 800;
+const defWalkerColor = "rgb(50, 150, 200)";
+const speed = 100;
+const refreshRate = 1;
+const walkerCount = 4;
+
+
 
 class Node {
 	constructor(x, y) {
@@ -56,13 +72,25 @@ class Stack {
 
 class Scene {
 	constructor(canvas) {
-		this.width = 1200;
-		this.height = 800;
+		this.width = gridWidth;
+		this.height = gridheight;
 		this.map;
-		this.backgroundColor = "rgb(30, 30, 25)";
-		this.populateMap();
+		// this.backgroundColor = backgroundColor;
 		this.walkers = [];
 		this.canvas = canvas
+
+		// resize canvas to window size 
+		if(this.canvas.width != window.innerWidth - 16) {
+			this.canvas.width = window.innerWidth - 16;
+			this.width = this.canvas.width;
+		}
+
+		if(this.canvas.height != window.innerHeight - 16) {
+			this.canvas.height = window.innerHeight - 16;
+			this.height = this.canvas.height;
+		}
+
+		this.populateMap();
 	}
 
 	populateMap() {
@@ -92,27 +120,6 @@ class Scene {
 		}
 	}
 
-	drawMap() {	
-		let width = this.canvas.width;
-		let height = this.canvas.height;
-		let context = this.canvas.getContext("2d");
-
-		let tileWidth = width / this.width;
-		let tileHeight = height / this.height;
-
-		// clear
-		drawRect({context:context, x:0, y:0, width:width, 
-			height:height, color:this.backgroundColor})
-
-		for(let i = 0; i < this.width; i++) {
-			for(let j = 0; j < this.height; j++) {
-				drawRect({context: context, x: i * tileWidth, y: j * tileHeight, 
-					width: tileWidth, height: tileHeight, color: this.map[i][j].color});
-			}
-		}
-
-	}
-
 	drawSquare(node) {
 		let width = this.canvas.width;
 		let height = this.canvas.height;
@@ -125,10 +132,12 @@ class Scene {
 					width: tileWidth, height: tileHeight, color: node.color});
 	}
 
-	addWalker(x = 0, y = 0, color = "rgb(90, 15, 242)") {
-
+	addWalker(x = 0, y = 0, color = null) {
 		let newWalker = new Walker(this.map[x][y])
-		newWalker.color = color;
+
+		if(color != null) {
+			newWalker.color = color;
+		}
 
 		this.walkers.push(newWalker);
 		this.map[x][y].visited = true;
@@ -163,8 +172,8 @@ function printNodes(nodes) {
 }
 
 class Walker {
-	// constructor(pos, color = "rgb(50, 150, 200)") {
-	constructor(pos, color = "rgb(90, 15, 242)") {
+	constructor(pos, color = defWalkerColor) {
+	// constructor(pos, color = "rgb(90, 15, 242)") {
 		this.pos = pos;
 		this.stack = [];
 		this.color = color;
@@ -191,10 +200,6 @@ class Walker {
 		let neighbours = this.pos.neighbours;
 		let unvisitedNeighbours = neighbours.filter(unVisited);
 		let nextNode = null;
-
-		// console.log("pos:", this.pos.id)
-		// console.log("neighbours:", neighbours)
-		// console.log("unvisitedNeighbours:", unvisitedNeighbours)
 		
 		// retrace
 		if(unvisitedNeighbours.length === 0) {
@@ -214,7 +219,7 @@ class Walker {
 		} else {
 			let rand = randInt(0, unvisitedNeighbours.length - 1);
 			nextNode = unvisitedNeighbours[rand];
-			unvisitedNeighbours.splice(unvisitedNeighbours.indexOf(nextNode));
+			unvisitedNeighbours.splice(unvisitedNeighbours.indexOf(nextNode), 1);
 		}
 
 		// if nomore nodes
@@ -243,20 +248,15 @@ class Walker {
 }
 
 let canvas = document.getElementById("canvas");
-
 let theScene = new Scene(canvas);
-// console.log(theScene.map);
 
-theScene.drawMap();
-
-theScene.addWalker();
-theScene.addWalker(0, 799);
-theScene.addWalker(1199, 0, "rgb(15, 242, 212)");
-theScene.addWalker(1199, 799, "rgb(15, 242, 212)");
+for(let i = 0; i < walkerCount; i++) {
+	theScene.addWalker(randInt(0, theScene.width - 1), randInt(0, theScene.height - 1), randColor());
+}
 
 let ptr = setInterval(function() {
-	for(let i = 0; i < 100; i++) {
+	for(let i = 0; i < speed; i++) {
 		theScene.iterate();
 	}
 	
-}, 1);
+}, refreshRate);
