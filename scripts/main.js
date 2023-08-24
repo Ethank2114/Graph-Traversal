@@ -30,11 +30,13 @@ function getId() {
 }
 
 class Node {
-	constructor() {
+	constructor(x, y) {
 		this.id = getId();
-		this.color = "rgb(60, 60, 30)";
+		this.color = null;
 		this.neighbours = [];
 		this.visited = false;
+		this.x = x;
+		this.y = y;
 	}
 }
 
@@ -54,8 +56,8 @@ class Stack {
 
 class Scene {
 	constructor(canvas) {
-		this.width = 300;
-		this.height = 200;
+		this.width = 1200;
+		this.height = 800;
 		this.map;
 		this.backgroundColor = "rgb(30, 30, 25)";
 		this.populateMap();
@@ -68,7 +70,7 @@ class Scene {
 		for(let i = 0; i < this.width; i++) {
 			let temp = [];
 			for(let j = 0; j < this.height; j++) {
-				temp.push(new Node());
+				temp.push(new Node(i, j));
 			}
 			this.map.push(temp);
 		}
@@ -111,23 +113,38 @@ class Scene {
 
 	}
 
-	addWalker(x = 0, y = 0) {
+	drawSquare(node) {
+		let width = this.canvas.width;
+		let height = this.canvas.height;
+		let context = this.canvas.getContext("2d");
+
+		let tileWidth = width / this.width;
+		let tileHeight = height / this.height;
+
+		drawRect({context: context, x: node.x * tileWidth, y: node.y * tileHeight, 
+					width: tileWidth, height: tileHeight, color: node.color});
+	}
+
+	addWalker(x = 0, y = 0, color = "rgb(90, 15, 242)") {
 
 		let newWalker = new Walker(this.map[x][y])
+		newWalker.color = color;
 
 		this.walkers.push(newWalker);
 		this.map[x][y].visited = true;
 		this.map[x][y].color = newWalker.color;
 
-		this.drawMap()
+		this.drawSquare(this.map[x][y])
+
+		// this.drawMap()
 	}
 
 	iterate() {
 		for(let w of this.walkers) {
-			w.walk();
+			w.walk(this);
 		}
 
-		this.drawMap()
+		// this.drawMap()
 
 	}
 }
@@ -146,7 +163,8 @@ function printNodes(nodes) {
 }
 
 class Walker {
-	constructor(pos, color = "rgb(0, 150, 150)") {
+	// constructor(pos, color = "rgb(50, 150, 200)") {
+	constructor(pos, color = "rgb(90, 15, 242)") {
 		this.pos = pos;
 		this.stack = [];
 		this.color = color;
@@ -156,7 +174,7 @@ class Walker {
 
 	look for unvistited nodes
 
-	if none, pull from memory untill 1 found
+	if none, pull from memory until 1 found
 
 	if none -> end
 
@@ -169,12 +187,12 @@ class Walker {
 
 	*/
 
-	walk() {
+	walk(scene) {
 		let neighbours = this.pos.neighbours;
 		let unvisitedNeighbours = neighbours.filter(unVisited);
 		let nextNode = null;
 
-		console.log("pos:", this.pos.id)
+		// console.log("pos:", this.pos.id)
 		// console.log("neighbours:", neighbours)
 		// console.log("unvisitedNeighbours:", unvisitedNeighbours)
 		
@@ -187,7 +205,11 @@ class Walker {
 				}
 
 				nextNode = this.stack.pop();
-				console.log(nextNode.id)
+
+				if(nextNode.color != null) {
+					this.color = nextNode.color
+				}
+				// console.log(nextNode.id)
 			} while(nextNode.visited);
 		} else {
 			let rand = randInt(0, unvisitedNeighbours.length - 1);
@@ -202,7 +224,10 @@ class Walker {
 
 		nextNode.visited = true;
 		nextNode.color = this.color;
-		this.color = mixColor(this.color, 5)
+
+		scene.drawSquare(nextNode)
+
+		this.color = mixColor(this.color, 1)
 		for(let n of unvisitedNeighbours) {
 			this.stack.push(n);
 		}
@@ -220,12 +245,18 @@ class Walker {
 let canvas = document.getElementById("canvas");
 
 let theScene = new Scene(canvas);
-console.log(theScene.map);
+// console.log(theScene.map);
 
 theScene.drawMap();
 
 theScene.addWalker();
+theScene.addWalker(0, 799);
+theScene.addWalker(1199, 0, "rgb(15, 242, 212)");
+theScene.addWalker(1199, 799, "rgb(15, 242, 212)");
 
 let ptr = setInterval(function() {
-	theScene.iterate();
+	for(let i = 0; i < 100; i++) {
+		theScene.iterate();
+	}
+	
 }, 1);
