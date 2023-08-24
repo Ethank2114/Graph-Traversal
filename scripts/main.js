@@ -9,6 +9,21 @@ function randInt(min, max) {
 	return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function mixColor(oldString, strength) {
+
+	let rgb = oldString.substring(4, oldString.length - 1).replace(/ /g, '').split(',');
+	let shift = randInt(-1 * strength, strength);
+			
+	let part = randInt(0, 2);
+	rgb[part] = (parseInt(rgb[part]) + shift).toString();
+
+	// rgb[0] = (parseInt(rgb[0]) + randInt(-1 * strength, strength)).toString();
+	// rgb[1] = (parseInt(rgb[1]) + randInt(-1 * strength, strength)).toString();
+	// rgb[2] = (parseInt(rgb[2]) + randInt(-1 * strength, strength)).toString();
+
+	return "rgb(" + rgb[0].toString() + ", "+ rgb[1].toString() + ", " + rgb[2].toString() + ")";  
+}
+
 let idCounter = 0;
 function getId() {
 	return ++idCounter;
@@ -17,7 +32,7 @@ function getId() {
 class Node {
 	constructor() {
 		this.id = getId();
-		this.color = "rgb(100, 150, 200)";
+		this.color = "rgb(60, 60, 30)";
 		this.neighbours = [];
 		this.visited = false;
 	}
@@ -39,8 +54,8 @@ class Stack {
 
 class Scene {
 	constructor(canvas) {
-		this.width = 5;
-		this.height = 5;
+		this.width = 300;
+		this.height = 200;
 		this.map;
 		this.backgroundColor = "rgb(30, 30, 25)";
 		this.populateMap();
@@ -84,21 +99,13 @@ class Scene {
 		let tileHeight = height / this.height;
 
 		// clear
-		drawRect({
-			context:context, 
-			x:0, 
-			y:0, 
-			width:width, 
-			height:height, 
-			color:this.backgroundColor})
+		drawRect({context:context, x:0, y:0, width:width, 
+			height:height, color:this.backgroundColor})
 
 		for(let i = 0; i < this.width; i++) {
 			for(let j = 0; j < this.height; j++) {
 				drawRect({context: context, x: i * tileWidth, y: j * tileHeight, 
 					width: tileWidth, height: tileHeight, color: this.map[i][j].color});
-				
-					
-				
 			}
 		}
 
@@ -180,6 +187,7 @@ class Walker {
 				}
 
 				nextNode = this.stack.pop();
+				console.log(nextNode.id)
 			} while(nextNode.visited);
 		} else {
 			let rand = randInt(0, unvisitedNeighbours.length - 1);
@@ -194,6 +202,7 @@ class Walker {
 
 		nextNode.visited = true;
 		nextNode.color = this.color;
+		this.color = mixColor(this.color, 5)
 		for(let n of unvisitedNeighbours) {
 			this.stack.push(n);
 		}
@@ -219,4 +228,4 @@ theScene.addWalker();
 
 let ptr = setInterval(function() {
 	theScene.iterate();
-}, 1000);
+}, 1);
