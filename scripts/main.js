@@ -11,17 +11,23 @@ function randInt(min, max) {
 
 function mixColor(oldString, strength) {
 
-	let rgb = oldString.substring(4, oldString.length - 1).replace(/ /g, '').split(',');
-	let shift = randInt(-1 * strength, strength);
+	let rgb;
+	let shift;
+	let part;
+	let newString;
+
+	do {
+		rgb = oldString.substring(4, oldString.length - 1).replace(/ /g, '').split(',');
+		shift = randInt(-1 * strength, strength);
 			
-	let part = randInt(0, 2);
-	rgb[part] = (parseInt(rgb[part]) + shift).toString();
+		part = randInt(0, 2);
+		rgb[part] = (parseInt(rgb[part]) + shift).toString();
 
-	// rgb[0] = (parseInt(rgb[0]) + randInt(-1 * strength, strength)).toString();
-	// rgb[1] = (parseInt(rgb[1]) + randInt(-1 * strength, strength)).toString();
-	// rgb[2] = (parseInt(rgb[2]) + randInt(-1 * strength, strength)).toString();
+		newString = "rgb(" + rgb[0].toString() + ", "+ rgb[1].toString() + ", " + rgb[2].toString() + ")";
 
-	return "rgb(" + rgb[0].toString() + ", "+ rgb[1].toString() + ", " + rgb[2].toString() + ")";  
+	} while(oldString === newString)
+
+	return newString
 }
 
 var randColor = function() {
