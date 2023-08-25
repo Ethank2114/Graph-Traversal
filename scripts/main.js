@@ -9,25 +9,20 @@ function randInt(min, max) {
 	return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function mixColor(oldString, strength) {
+function mixColor(oldColor, strength = 1) {
+	let rgb = oldColor.replace(/[^\d,]/g, '').split(',');
+	let shift = randInt(-1 * strength, strength);
+	let part = randInt(0, 2);
 
-	let rgb;
-	let shift;
-	let part;
-	let newString;
+	rgb[part] = parseInt(rgb[part]) + shift;
 
-	do {
-		rgb = oldString.substring(4, oldString.length - 1).replace(/ /g, '').split(',');
-		shift = randInt(-1 * strength, strength);
-			
-		part = randInt(0, 2);
-		rgb[part] = (parseInt(rgb[part]) + shift).toString();
+	if(rgb[part] > 255 || rgb[part] < 0) {
+		rgb[part] += shift * -2;
+	}
 
-		newString = "rgb(" + rgb[0].toString() + ", "+ rgb[1].toString() + ", " + rgb[2].toString() + ")";
+	rgb[part] = rgb[part].toString();
 
-	} while(oldString === newString)
-
-	return newString
+	return "rgb(" + rgb[0].toString() + ", "+ rgb[1].toString() + ", " + rgb[2].toString() + ")";
 }
 
 var randColor = function() {
