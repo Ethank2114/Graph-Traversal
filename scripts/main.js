@@ -126,10 +126,15 @@ class Scene {
 		this.width = gridWidth;
 		this.height = gridheight;
 		this.map;
-		// this.backgroundColor = backgroundColor;
 		this.walkers = [];
 		this.canvas = canvas
 
+		this.resize()
+
+		this.reset()
+	}
+
+	resize() {
 		// resize canvas to window size 
 		if(this.canvas.width != window.innerWidth - 16) {
 			this.canvas.width = window.innerWidth - 16;
@@ -140,9 +145,6 @@ class Scene {
 			this.canvas.height = window.innerHeight - 16;
 			this.height = this.canvas.height;
 		}
-
-		// this.populateMap();
-		this.reset()
 	}
 
 	populateMap() {
@@ -219,6 +221,7 @@ class Scene {
 	}
 
 	rePaint() {
+		this.resize()
 		this.populateMap();
 		for(let i = 0; i < seeds; i++) {
 			this.addWalker();
