@@ -9,7 +9,33 @@ function randInt(min, max) {
 	return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+// function mixColor(oldColor, strength = 1) {
+// 	let rgb = oldColor.replace(/[^\d,]/g, '').split(',');
+// 	let shift = randInt(-1 * strength, strength);
+// 	let part = randInt(0, 2);
+
+// 	rgb[part] = parseInt(rgb[part]) + shift;
+
+// 	if(rgb[part] > 255 || rgb[part] < 0) {
+// 		rgb[part] += shift * -2;
+// 	}
+
+// 	rgb[part] = rgb[part].toString();
+
+// 	return "rgb(" + rgb[0].toString() + ", "+ rgb[1].toString() + ", " + rgb[2].toString() + ")";
+// }
+
 function mixColor(oldColor, strength = 1) {
+
+	if(strength < 1) {
+		let percent = Math.ceil(strength * 100);
+		// console.log("percent", percent)
+		if(randInt(0, 100) > percent) {
+			return oldColor
+		}
+		strength = 1;
+	}
+
 	let rgb = oldColor.replace(/[^\d,]/g, '').split(',');
 	let shift = randInt(-1 * strength, strength);
 	let part = randInt(0, 2);
@@ -32,6 +58,15 @@ var randColor = function() {
 	return "rgb(" + r.toString() + ", "+ g.toString() + ", " + b.toString() + ")"; 
 }
 
+var hexToRGB = function(hex) {
+	let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+	return result ? "rgb(" +
+		parseInt(result[1], 16) + ", " +
+		parseInt(result[2], 16) + ", " +
+		parseInt(result[3], 16) + ")"
+	 : null;
+}
+
 let idCounter = 0;
 function getId() {
 	return ++idCounter;
@@ -39,12 +74,27 @@ function getId() {
 
 let gridWidth = 1200;
 let gridheight = 800;
-const defWalkerColor = "rgb(50, 150, 200)";
-const speed = 100;
 const refreshRate = 1;
-const walkerCount = 4;
 
+var colorDefault = null;
 
+var speed = 50;
+var seeds = 5;
+var colorStrength = 1;
+
+function colorSmoother(num) {
+	if(num===0) {
+		return 0;
+	}
+
+	let out = Math.pow(1.045, num - 47.3197) - 0.125;
+	
+	if(out >= 1) {
+		out = Math.round(out);
+	}
+	// console.log(out)
+	return out;
+}
 
 class Node {
 	constructor(x, y) {
@@ -91,11 +141,13 @@ class Scene {
 			this.height = this.canvas.height;
 		}
 
-		this.populateMap();
+		// this.populateMap();
+		this.reset()
 	}
 
 	populateMap() {
 		this.map = [];
+		this.walkers = [];
 		for(let i = 0; i < this.width; i++) {
 			let temp = [];
 			for(let j = 0; j < this.height; j++) {
@@ -133,11 +185,15 @@ class Scene {
 					width: tileWidth, height: tileHeight, color: node.color});
 	}
 
-	addWalker(x = 0, y = 0, color = null) {
+	addWalker(x = randInt(0, this.width-1), y = randInt(0, this.height-1), color = randColor()) {
 		let newWalker = new Walker(this.map[x][y])
 
 		if(color != null) {
 			newWalker.color = color;
+		}
+
+		if(colorDefault != null) {
+			newWalker.color = colorDefault;
 		}
 
 		this.walkers.push(newWalker);
@@ -153,9 +209,20 @@ class Scene {
 		for(let w of this.walkers) {
 			w.walk(this);
 		}
+	}
 
-		// this.drawMap()
+	reset() {
+		let context = this.canvas.getContext("2d");
+		drawRect({context: context, x: 0, y: 0, 
+					width: this.canvas.width, height: this.canvas.height, color: "rgb(30,30,25)"});
+		this.rePaint()
+	}
 
+	rePaint() {
+		this.populateMap();
+		for(let i = 0; i < seeds; i++) {
+			this.addWalker();
+		}
 	}
 }
 
@@ -173,29 +240,16 @@ function printNodes(nodes) {
 }
 
 class Walker {
-	constructor(pos, color = defWalkerColor) {
-	// constructor(pos, color = "rgb(90, 15, 242)") {
+	constructor(pos, color = colorDefault) {
 		this.pos = pos;
 		this.stack = [];
+
+		if(color === null) {
+			color = randColor()
+		}
+
 		this.color = color;
 	}
-
-	/*
-
-	look for unvistited nodes
-
-	if none, pull from memory until 1 found
-
-	if none -> end
-
-	else:
-
-	mark node as visited
-	add unvisited to memory
-
-	move to new node
-
-	*/
 
 	walk(scene) {
 		let neighbours = this.pos.neighbours;
@@ -233,31 +287,31 @@ class Walker {
 
 		scene.drawSquare(nextNode)
 
-		this.color = mixColor(this.color, 1)
+		this.color = mixColor(this.color, colorStrength)
 		for(let n of unvisitedNeighbours) {
 			this.stack.push(n);
 		}
 
-		// console.log("nextNode:", nextNode)
-		// console.log("stack:", printNodes(this.stack))
-
 		this.pos = nextNode;
 		return true;
-
-
 	}
 }
 
 let canvas = document.getElementById("canvas");
 let theScene = new Scene(canvas);
 
-for(let i = 0; i < walkerCount; i++) {
-	theScene.addWalker(randInt(0, theScene.width - 1), randInt(0, theScene.height - 1), randColor());
-}
-
 let ptr = setInterval(function() {
-	for(let i = 0; i < speed; i++) {
+	for(let i = 0; i < Math.floor(Math.pow(1.09648, speed)); i++) {
 		theScene.iterate();
 	}
 	
 }, refreshRate);
+
+function changeSpeed() {
+	clearInterval(ptr)
+	ptr = setInterval(function() {
+		for(let i = 0; i < Math.floor(Math.pow(1.09648, speed)); i++) {
+			theScene.iterate();
+		}
+	}, refreshRate);
+}

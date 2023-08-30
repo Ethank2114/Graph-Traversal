@@ -5,7 +5,66 @@
 	<link rel="stylesheet" href="styles/styles.css">
 </head>
 <body>
-	<canvas id="canvas" width=1200px height=800px></canvas>
+	<div class="container">
+		<canvas id="canvas" width=1200px height=800px></canvas>
+
+		<div class="controlBar" id="controlBar">
+			<div class="controls">
+				<div class="controlHolder">
+					<h1 class="title">Controls</h1>
+				</div>
+				<div class="controlHolder">
+					<div class="controlTop">
+						<label class="controlLabel">Seeds</label>
+					</div>
+					<div class="controlBot">
+						<input class="slider" type="range" id="seedsSlider" min="1" max="100" step="1" value="5">
+						<input class="sliderValue" type="text" id="seedsValue" value="5"></input>
+					</div>
+				</div>
+				<div class="controlHolder">
+					<div class="controlTop">
+						<label class="controlLabel">Speed</label>
+					</div>
+					<div class="controlBot">
+						<input class="slider" type="range" id="speedSlider" min="0" max="100" step="1" value="50" onchange="changeSpeed()">
+						<input class="sliderValue" type="text" id="speedValue" value="50"></input>
+					</div>
+				</div>
+				<div class="controlHolder">
+					<div class="controlTop">
+						<label class="controlLabel">Color Strength</label>
+					</div>
+					<div class="controlBot">
+						<input class="slider" type="range" id="colorStrengthSlider" min="0" max="100" step="1" value="50">
+						<input class="sliderValue" type="text" id="colorStrengthValue" value="50"></input>
+					</div>
+				</div>
+				<div class="controlHolder">
+					<div class="controlTop">
+						<label class="controlLabel">Starting Color</label>
+					</div>
+					<div class="controlBot">
+						<input class="color" type="color" id="color">
+					</div>
+				</div>
+				
+				<div class="controlHolder">
+					<input type="button" class="button paint" value="Reset" onclick="theScene.reset()">
+					<input type="button" class="button paint" value="RePaint" onclick="theScene.rePaint()">
+				</div>
+				
+				<input type="button" class="button print" value="Print" onclick="printCanvas()">
+				
+				
+				<input type="button" class="hide" id="hide" value="Hide">
+				
+			</div>
+		</div>
+	</div>
+
+	<script src="scripts/fileSaver.js"></script>
+	<script src="scripts/eventListeners.js"></script>
 	<script src="scripts/main.js"></script>
 </body>
 </html>
